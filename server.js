@@ -159,10 +159,58 @@ app.delete('/api/affectations/:id', auth, adminOnly, async (req, res) => {
 });
 
 // ── ORDRES DE MISSION ──
-app.get('/api/ordres', auth, async (req, res) => {
-  const { data, error } = await req.sb.from('ordres_mission').select('*, evenements(*)').order('created_at', { ascending: false });
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+app.get('/api/ordres/:id/pdf', auth, async (req, res) => {
+  try {
+    const { data: om } = await req.sb.from('ordres_mission').select('*, evenements(*)').eq('id', req.params.id).single();
+    const { data: affectations } = await req.sb.from('affectations').select('*, membres(prenom, nom, qualifications)').eq('evenement_id', om.evenement_id);
+    const evt = om.evenements;
+    const PDFDocument = require('pdfkit');
+    const doc = new PDFDocument({ margin: 50 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${om.numero}.pdf"`);
+    doc.pipe(res);
+    doc.fontSize(20).fillColor('#C0392B').text('SECOURISTES DU SUD', { align: 'center' });
+    doc.fontSize(10).fillColor('#666').text('Nîmes — Agrément sécurité civile', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(16).fillColor('#000').text(`Ordre de mission — ${om.numero}`, { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).fillColor('#C0392B').text('INFORMATIONS ÉVÉNEMENT');
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B');
+    doc.moveDown(0.5);
+    doc.fontSize(11).fillColor('#000');
+    doc.text(`Événement : ${evt.nom}`);
+    doc.text(`Type : ${evt.type}`);
+    doc.text(`Date : ${new Date(evt.date+'T00:00:00').toLocaleDateString('fr-FR')}`);
+    doc.text(`Horaires : ${evt.heure_debut} – ${evt.heure_fin}`);
+    doc.text(`Lieu : ${evt.lieu || '—'}`);
+    doc.text(`Contact organisateur : ${evt.contact_organisateur || '—'}`);
+    if (evt.instructions_acces) { doc.moveDown(0.5); doc.fontSize(12).fillColor('#C0392B').text("INSTRUCTIONS D'ACCÈS"); doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B'); doc.moveDown(0.5); doc.fontSize(11).fillColor('#000').text(evt.instructions_acces); }
+    if (evt.protocoles) { doc.moveDown(0.5); doc.fontSize(12).fillColor('#C0392B').text('CONSIGNES MÉDICALES'); doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B'); doc.moveDown(0.5); doc.fontSize(11).fillColor('#000').text(evt.protocoles); }
+    doc.moveDown(0.5);
+    doc.fontSize(12).fillColor('#C0392B').text('VÉHICULES AFFECTÉS');
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B');
+    doc.moveDown(0.5);
+    doc.fontSize(11).fillColor('#000').text((evt.vehicules || []).join(' — ') || '—');
+    doc.moveDown(0.5);
+    doc.fontSize(12).fillColor('#C0392B').text('PERSONNEL AFFECTÉ');
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B');
+    doc.moveDown(0.5);
+    (affectations || []).forEach(a => {
+      doc.fontSize(11).fillColor('#000').text(`• ${a.membres.prenom} ${a.membres.nom} — ${a.poste}`);
+    });
+    doc.moveDown();
+    doc.fontSize(12).fillColor('#C0392B').text('SIGNATURES');
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke('#C0392B');
+    doc.moveDown();
+    doc.fontSize(11).fillColor('#000').text('Responsable association :', 50, doc.y);
+    doc.text('Chef de poste :', 300, doc.y - doc.currentLineHeight());
+    doc.moveDown(3);
+    doc.moveTo(50, doc.y).lineTo(230, doc.y).stroke('#999');
+    doc.moveTo(300, doc.y).lineTo(480, doc.y).stroke('#999');
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/ordres', auth, adminOnly, async (req, res) => {
