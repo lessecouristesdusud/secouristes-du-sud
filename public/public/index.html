@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secouristes du Sud — Gestion DPS</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1A1917">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rouge:#C0392B;--rouge-dark:#922B21;--rouge-pale:#FDECEA;
+  --blanc:#FFFFFF;--gris-pale:#F7F6F4;--gris-light:#EDECEA;
+  --gris-mid:#C8C6C2;--gris-dark:#6B6864;--noir:#1A1917;
+  --vert:#1A7A4A;--vert-pale:#E8F5EE;
+  --orange:#D4600A;--orange-pale:#FEF0E6;
+  --bleu:#1A5A9A;--bleu-pale:#E6EFF9;
+  --violet:#5A3A9A;--violet-pale:#EEEAF9;
+  --font:'DM Sans',sans-serif;
+  --radius:8px;--radius-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:14px;}
+body{font-family:var(--font);background:var(--gris-pale);color:var(--noir);min-height:100vh;display:flex;}
+
+/* LOGIN */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;width:100%;background:var(--noir);}
+.login-card{background:var(--blanc);border-radius:var(--radius-lg);padding:36px;width:100%;max-width:360px;}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.login-cross{width:40px;height:40px;background:var(--rouge);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.login-cross svg{width:22px;height:22px;}
+.login-title{font-size:16px;font-weight:600;}
+.login-sub{font-size:12px;color:var(--gris-dark);margin-top:2px;}
+.login-err{background:var(--rouge-pale);color:var(--rouge);border-radius:var(--radius);padding:8px 12px;font-size:12px;margin-bottom:12px;display:none;}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--noir);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;transition:transform 0.2s;}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.logo-cross{width:32px;height:32px;background:var(--rouge);border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.logo-cross svg{width:18px;height:18px;}
+.logo-name{font-size:13px;font-weight:600;color:#fff;line-height:1.3;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;}
+.nav-section{padding:12px 0 4px;}
+.nav-label{font-size:10px;font-weight:500;letter-spacing:0.08em;color:rgba(255,255,255,0.3);padding:0 18px 6px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;color:rgba(255,255,255,0.55);cursor:pointer;transition:all 0.15s;border-left:2px solid transparent;user-select:none;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.06);}
+.nav-item.active{color:#fff;background:rgba(192,57,43,0.2);border-left-color:var(--rouge);}
+.nav-item svg{width:15px;height:15px;flex-shrink:0;opacity:0.7;}
+.nav-item.active svg{opacity:1;}
+.sidebar-footer{margin-top:auto;padding:14px 18px;border-top:1px solid rgba(255,255,255,0.08);}
+.user-pill{display:flex;align-items:center;gap:8px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--rouge);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;color:#fff;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);}
+.logout-btn{margin-top:8px;font-size:11px;color:rgba(255,255,255,0.3);cursor:pointer;padding:4px 0;}
+.logout-btn:hover{color:rgba(255,255,255,0.6);}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--blanc);border-bottom:1px solid var(--gris-light);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.page-title{font-size:16px;font-weight:600;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.content{padding:24px 28px;flex:1;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px;}
+.stat-label{font-size:11px;color:var(--gris-dark);font-weight:500;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.stat-value{font-size:26px;font-weight:600;color:var(--noir);line-height:1;}
+.stat-sub{font-size:11px;color:var(--gris-dark);margin-top:4px;}
+.stat-accent{color:var(--rouge);}
+
+/* ALERTS */
+.alert-bar{background:#FFF8E6;border:1px solid #F5CBA7;border-radius:var(--radius);padding:10px 14px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;color:#7D5A00;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:var(--font);}
+.btn-primary{background:var(--rouge);color:#fff;}
+.btn-primary:hover{background:var(--rouge-dark);}
+.btn-secondary{background:var(--blanc);color:var(--noir);border:1px solid var(--gris-light);}
+.btn-secondary:hover{background:var(--gris-pale);}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn svg{width:14px;height:14px;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* SECTION */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:14px;font-weight:600;}
+
+/* EVENTS */
+.events-grid{display:flex;flex-direction:column;gap:10px;}
+.event-card{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:flex-start;gap:16px;}
+.event-date-col{text-align:center;min-width:44px;flex-shrink:0;}
+.event-day{font-size:22px;font-weight:600;color:var(--rouge);line-height:1;}
+.event-month{font-size:10px;text-transform:uppercase;color:var(--gris-dark);letter-spacing:0.05em;}
+.event-body{flex:1;min-width:0;}
+.event-name{font-size:14px;font-weight:600;margin-bottom:4px;}
+.event-meta{font-size:12px;color:var(--gris-dark);display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;}
+.event-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.tag{font-size:11px;font-weight:500;padding:3px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;}
+.tag-taurin{background:var(--orange-pale);color:var(--orange);}
+.tag-musical{background:var(--bleu-pale);color:var(--bleu);}
+.tag-sportif{background:var(--vert-pale);color:var(--vert);}
+.tag-autre{background:var(--violet-pale);color:var(--violet);}
+.tag-ok{background:var(--vert-pale);color:var(--vert);}
+.tag-partiel{background:var(--orange-pale);color:var(--orange);}
+.tag-manque{background:var(--rouge-pale);color:var(--rouge);}
+.event-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.progress-bar{width:100px;height:4px;background:var(--gris-light);border-radius:2px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--vert);border-radius:2px;}
+.progress-fill.partial{background:var(--orange);}
+.progress-fill.low{background:var(--rouge);}
+.progress-label{font-size:11px;color:var(--gris-dark);text-align:right;}
+
+/* PLANNING */
+.planning-header{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:14px;}
+.planning-event-title{font-size:15px;font-weight:600;margin-bottom:12px;}
+.roles-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.role-card{border:1px solid var(--gris-light);border-radius:var(--radius);padding:12px;background:var(--gris-pale);}
+.role-name{font-size:12px;font-weight:600;color:var(--gris-dark);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+.assigned-slot{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius);padding:7px 10px;margin-bottom:6px;font-size:12px;display:flex;align-items:center;justify-content:space-between;}
+.empty-slot{border:1.5px dashed var(--gris-mid);border-radius:var(--radius);padding:7px 10px;margin-bottom:6px;font-size:12px;color:var(--gris-dark);text-align:center;}
+.dispo-table{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);overflow:hidden;}
+.dispo-table table{width:100%;border-collapse:collapse;}
+.dispo-table th{background:var(--gris-pale);padding:10px 14px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--gris-dark);text-align:left;border-bottom:1px solid var(--gris-light);}
+.dispo-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--gris-light);}
+.dispo-table tr:last-child td{border-bottom:none;}
+.dispo-table tr:hover td{background:var(--gris-pale);}
+.qual-badge{font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;background:var(--gris-light);color:var(--gris-dark);display:inline-block;margin-right:3px;margin-bottom:2px;}
+.qual-badge.pse2{background:var(--bleu-pale);color:var(--bleu);}
+.qual-badge.chef{background:var(--violet-pale);color:var(--violet);}
+.qual-badge.conducteur{background:var(--orange-pale);color:var(--orange);}
+
+/* OM */
+.om-card{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;}
+.om-header{padding:14px 18px;background:var(--noir);display:flex;align-items:center;justify-content:space-between;}
+.om-title{font-size:14px;font-weight:600;color:#fff;}
+.om-body{padding:18px;}
+.om-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.om-field label{font-size:11px;font-weight:600;color:var(--gris-dark);text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px;}
+.om-field p{font-size:13px;color:var(--noir);}
+.om-section-title{font-size:11px;font-weight:600;color:var(--gris-dark);text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--gris-light);padding-bottom:6px;margin-bottom:10px;margin-top:14px;}
+.personnel-list{display:flex;flex-direction:column;gap:6px;}
+.personnel-item{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--gris-pale);border-radius:var(--radius);font-size:13px;}
+.personnel-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0;}
+.vehicules-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.vpsp-badge{background:var(--gris-light);border-radius:var(--radius);padding:6px 12px;font-size:12px;font-weight:500;}
+.signature-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--gris-mid);}
+.sig-block{border:1px solid var(--gris-light);border-radius:var(--radius);padding:12px;text-align:center;}
+.sig-role{font-size:11px;font-weight:600;color:var(--gris-dark);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.sig-signed{height:40px;background:var(--vert-pale);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--vert);font-weight:500;margin-bottom:8px;}
+.sig-pending{height:40px;border:1.5px dashed var(--gris-mid);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--gris-dark);margin-bottom:8px;}
+.sig-name{font-size:12px;color:var(--gris-dark);}
+
+/* MEMBRES */
+.membres-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.membre-card{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px;display:flex;align-items:flex-start;gap:12px;}
+.membre-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0;}
+.membre-name{font-size:14px;font-weight:600;margin-bottom:3px;}
+.membre-email{font-size:11px;color:var(--gris-dark);margin-bottom:8px;}
+.membre-quals{display:flex;flex-wrap:wrap;gap:4px;}
+
+/* DISPONIBILITÉS */
+.dispo-event-card{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px;}
+.dispo-event-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.dispo-toggle{display:flex;gap:6px;flex-shrink:0;}
+.dispo-btn{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid;transition:all 0.15s;font-family:var(--font);background:transparent;}
+.dispo-btn.oui{border-color:var(--vert);color:var(--vert);}
+.dispo-btn.oui.active{background:var(--vert-pale);}
+.dispo-btn.peuxetre{border-color:var(--orange);color:var(--orange);}
+.dispo-btn.peuxetre.active{background:var(--orange-pale);}
+.dispo-btn.non{border-color:var(--rouge);color:var(--rouge);}
+.dispo-btn.non.active{background:var(--rouge-pale);}
+
+/* CALENDRIER */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-header-cell{font-size:11px;font-weight:600;color:var(--gris-dark);text-align:center;padding:6px 2px;text-transform:uppercase;letter-spacing:0.05em;}
+.cal-cell{background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius);min-height:70px;padding:6px;font-size:11px;}
+.cal-cell.other-month{background:var(--gris-pale);}
+.cal-cell.today{border-color:var(--rouge);}
+.cal-day{font-size:12px;font-weight:600;margin-bottom:4px;color:var(--gris-dark);}
+.cal-day.today-num{color:var(--rouge);}
+.cal-event-dot{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.hidden{display:none;}
+.modal{background:var(--blanc);border-radius:var(--radius-lg);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--gris-light);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--blanc);}
+.modal-title{font-size:15px;font-weight:600;}
+.modal-close{cursor:pointer;color:var(--gris-dark);font-size:20px;line-height:1;}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:12px;font-weight:600;color:var(--gris-dark);text-transform:uppercase;letter-spacing:0.04em;}
+.form-input,.form-select,.form-textarea{padding:9px 12px;border:1px solid var(--gris-mid);border-radius:var(--radius);font-size:13px;font-family:var(--font);color:var(--noir);background:var(--blanc);outline:none;transition:border-color 0.15s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--rouge);}
+.form-textarea{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--gris-light);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--blanc);}
+.checkbox-group{display:flex;flex-direction:column;gap:6px;}
+.checkbox-item{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;}
+.checkbox-item input{accent-color:var(--rouge);width:14px;height:14px;}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--gris-dark);font-size:13px;}
+.spinner{width:20px;height:20px;border:2px solid var(--gris-light);border-top-color:var(--rouge);border-radius:50%;animation:spin 0.6s linear infinite;margin-right:10px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--noir);color:#fff;padding:10px 16px;border-radius:var(--radius);font-size:13px;z-index:999;transform:translateY(100px);opacity:0;transition:all 0.3s;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-left:3px solid var(--vert);}
+.toast.error{border-left:3px solid var(--rouge);}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .roles-grid{grid-template-columns:1fr 1fr;}
+  .om-grid{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .dispo-event-header{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-cross">
+        <svg viewBox="0 0 18 18" fill="none"><rect x="7" y="1" width="4" height="16" rx="1.5" fill="white"/><rect x="1" y="7" width="16" height="4" rx="1.5" fill="white"/></svg>
+      </div>
+      <div>
+        <div class="login-title">Secouristes du Sud</div>
+        <div class="login-sub">Espace de gestion DPS</div>
+      </div>
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-input" id="loginEmail" placeholder="votre@email.fr">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" class="form-input" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="login()" id="loginBtn">Se connecter</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appWrap" style="display:none;width:100%;display:none;">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-cross">
+      <svg viewBox="0 0 18 18" fill="none"><rect x="7" y="1" width="4" height="16" rx="1.5" fill="white"/><rect x="1" y="7" width="16" height="4" rx="1.5" fill="white"/></svg>
+    </div>
+    <div class="logo-name">Secouristes du Sud</div>
+    <div class="logo-sub">Gestion DPS · Nîmes</div>
+  </div>
+  <nav>
+    <div class="nav-section">
+      <div class="nav-label">Général</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h5v5H2V2zm0 7h5v5H2V9zm7-7h5v5H9V2zm0 7h5v5H9V9z"/></svg>
+        Tableau de bord
+      </div>
+      <div class="nav-item" onclick="showPage('evenements')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 1v1H2a1 1 0 00-1 1v11a1 1 0 001 1h12a1 1 0 001-1V3a1 1 0 00-1-1h-2V1h-1v1H5V1H4zm-1 4h10v8H3V5z"/></svg>
+        Événements
+      </div>
+      <div class="nav-item" onclick="showPage('calendrier')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Calendrier
+      </div>
+    </div>
+    <div class="nav-section" id="adminNav">
+      <div class="nav-label">Opérations</div>
+      <div class="nav-item" onclick="showPage('planning')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 3h14v1H1V3zm0 4h14v1H1V7zm0 4h10v1H1v-1z"/></svg>
+        Planning & affectations
+      </div>
+      <div class="nav-item" onclick="showPage('ordres')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 1h10a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1zm1 3v1h8V4H4zm0 3v1h8V7H4zm0 3v1h5v-1H4z"/></svg>
+        Ordres de mission
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Équipe</div>
+      <div class="nav-item" id="navMembres" onclick="showPage('membres')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 8a3 3 0 100-6 3 3 0 000 6zm-5 6a5 5 0 0110 0H3z"/></svg>
+        Membres
+      </div>
+      <div class="nav-item" onclick="showPage('disponibilites')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zM4 8a4 4 0 118 0 4 4 0 01-8 0z"/></svg>
+        Mes disponibilités
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" id="sidebarAvatar">?</div>
+      <div>
+        <div class="user-name" id="sidebarName">Chargement…</div>
+        <div class="user-role" id="sidebarRole">—</div>
+      </div>
+    </div>
+    <div class="logout-btn" onclick="logout()">← Déconnexion</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Tableau de bord</div>
+    <div class="topbar-right">
+      <div id="alertBadge" style="display:none;background:var(--orange-pale);color:var(--orange);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer;" onclick="showPage('evenements')"></div>
+      <button class="btn btn-primary btn-sm" id="btnNewEvt" onclick="openModal('modalEvenement')" style="display:none;">
+        <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1v12M1 7h12"/></svg>
+        Nouvel événement
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div id="alertDash" class="alert-bar" style="display:none;"></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Événements</div><div class="stat-value" id="sEvts">—</div><div class="stat-sub">À venir</div></div>
+        <div class="stat-card"><div class="stat-label">Bénévoles</div><div class="stat-value" id="sMembres">—</div><div class="stat-sub">Inscrits</div></div>
+        <div class="stat-card"><div class="stat-label">Postes pourvus</div><div class="stat-value"><span class="stat-accent" id="sPourvus">—</span><span id="sTotal" style="font-size:16px;color:var(--gris-dark);">/—</span></div><div class="stat-sub">Sur tous les événements</div></div>
+        <div class="stat-card"><div class="stat-label">Ordres signés</div><div class="stat-value" id="sOM">—</div><div class="stat-sub">PDF disponibles</div></div>
+      </div>
+      <div class="section-header"><div class="section-title">Prochains événements</div><button class="btn btn-secondary btn-sm" onclick="showPage('evenements')">Voir tout</button></div>
+      <div id="dashEvents"><div class="loading"><div class="spinner"></div>Chargement…</div></div>
+    </div>
+
+    <!-- ÉVÉNEMENTS -->
+    <div class="page" id="page-evenements">
+      <div id="evtsList"><div class="loading"><div class="spinner"></div>Chargement…</div></div>
+    </div>
+
+    <!-- CALENDRIER -->
+    <div class="page" id="page-calendrier">
+      <div class="section-header mb-20" style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)">←</button>
+          <div class="section-title" id="calTitle">—</div>
+          <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">→</button>
+        </div>
+      </div>
+      <div style="background:var(--blanc);border:1px solid var(--gris-light);border-radius:var(--radius-lg);padding:16px;">
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+    </div>
+
+    <!-- PLANNING -->
+    <div class="page" id="page-planning">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;" id="planningBtns"></div>
+      <div id="planningContent"></div>
+    </div>
+
+    <!-- ORDRES -->
+    <div class="page" id="page-ordres">
+      <div class="section-header" style="margin-bottom:16px;">
+        <div></div>
+        <button class="btn btn-primary" onclick="openModal('modalOM')">
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1v12M1 7h12"/></svg>
+          Générer un OM
+        </button>
+      </div>
+      <div id="omList"><div class="loading"><div class="spinner"></div>Chargement…</div></div>
+    </div>
+
+    <!-- MEMBRES -->
+    <div class="page" id="page-membres">
+      <div class="section-header" style="margin-bottom:16px;">
+        <div></div>
+        <button class="btn btn-primary" onclick="openModal('modalMembre')">
+          <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1v12M1 7h12"/></svg>
+          Ajouter un membre
+        </button>
+      </div>
+      <div class="membres-grid" id="membresList"></div>
+    </div>
+
+    <!-- DISPONIBILITÉS -->
+    <div class="page" id="page-disponibilites">
+      <div style="background:var(--bleu-pale);border:1px solid #B5D4F4;border-radius:var(--radius);padding:10px 14px;margin-bottom:20px;font-size:13px;color:var(--bleu);">
+        Déclarez vos disponibilités sur les prochains événements. L'administrateur vous affectera ensuite.
+      </div>
+      <div id="dispoList"><div class="loading"><div class="spinner"></div>Chargement…</div></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL ÉVÉNEMENT -->
+<div class="modal-overlay hidden" id="modalEvenement">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nouvel événement</div><div class="modal-close" onclick="closeModal('modalEvenement')">×</div></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="eNom" placeholder="Ex : Feria de Nîmes — Jour 1"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="eType"><option value="taurin">Taurin</option><option value="musical">Musical</option><option value="sportif">Sportif</option><option value="autre">Autre</option></select></div>
+        <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-input" id="eDate"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Début</label><input type="time" class="form-input" id="eDebut" value="14:00"></div>
+        <div class="form-group"><label class="form-label">Fin</label><input type="time" class="form-input" id="eFin" value="23:00"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Lieu</label><input class="form-input" id="eLieu" placeholder="Ex : Arènes de Nîmes"></div>
+      <div class="form-group"><label class="form-label">Contact organisateur</label><input class="form-input" id="eContact" placeholder="Nom · Téléphone · Email"></div>
+      <div class="form-group"><label class="form-label">Instructions d'accès</label><textarea class="form-textarea" id="eAcces" placeholder="Portail, badge, coordonnées GPS…"></textarea></div>
+      <div class="form-group"><label class="form-label">Consignes médicales / Protocoles</label><textarea class="form-textarea" id="eProtocoles" placeholder="Hôpital référent, protocoles spécifiques…"></textarea></div>
+      <div class="form-group"><label class="form-label">Véhicules</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" value="VPSP 1"> VPSP 1</label>
+          <label class="checkbox-item"><input type="checkbox" value="VPSP 2"> VPSP 2</label>
+          <label class="checkbox-item"><input type="checkbox" value="VPSP 3"> VPSP 3</label>
+          <label class="checkbox-item"><input type="checkbox" value="VPSP 4"> VPSP 4</label>
+          <label class="checkbox-item"><input type="checkbox" value="VL Logistique"> VL Logistique</label>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Postes à pourvoir</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" value="Chef de poste" checked> Chef de poste</label>
+          <label class="checkbox-item"><input type="checkbox" value="Équipier PSE2" checked> Équipier PSE2</label>
+          <label class="checkbox-item"><input type="checkbox" value="Équipier PSE1" checked> Équipier PSE1</label>
+          <label class="checkbox-item"><input type="checkbox" value="Conducteur" checked> Conducteur</label>
+          <label class="checkbox-item"><input type="checkbox" value="Logistique"> Logistique</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEvenement')">Annuler</button>
+      <button class="btn btn-primary" onclick="creerEvenement()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEMBRE -->
+<div class="modal-overlay hidden" id="modalMembre">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nouveau membre</div><div class="modal-close" onclick="closeModal('modalMembre')">×</div></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Prénom</label><input class="form-input" id="mPrenom"></div>
+        <div class="form-group"><label class="form-label">Nom</label><input class="form-input" id="mNom"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="mEmail"></div>
+      <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" id="mTel" placeholder="06 xx xx xx xx"></div>
+      <div class="form-group"><label class="form-label">Qualifications</label>
+        <div class="checkbox-group">
+          <label class="checkbox-item"><input type="checkbox" class="mQual" value="PSE1"> PSE1</label>
+          <label class="checkbox-item"><input type="checkbox" class="mQual" value="PSE2"> PSE2</label>
+          <label class="checkbox-item"><input type="checkbox" class="mQual" value="Conducteur"> Conducteur</label>
+          <label class="checkbox-item"><input type="checkbox" class="mQual" value="Chef de poste"> Chef de poste</label>
+          <label class="checkbox-item"><input type="checkbox" class="mQual" value="Logistique"> Logistique</label>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Rôle</label>
+        <select class="form-select" id="mRole"><option value="benevole">Bénévole</option><option value="admin">Administrateur</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalMembre')">Annuler</button>
+      <button class="btn btn-primary" onclick="creerMembre()">Créer le compte</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL OM -->
+<div class="modal-overlay hidden" id="modalOM">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Générer un ordre de mission</div><div class="modal-close" onclick="closeModal('modalOM')">×</div></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Événement</label>
+        <select class="form-select" id="omEvtSelect"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalOM')">Annuler</button>
+      <button class="btn btn-primary" onclick="creerOM()">Générer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = localStorage.getItem('sds_token');
+let currentUser = null;
+let currentMembre = null;
+let state = { evenements:[], membres:[], dispos:[], affectations:[], ordres:[] };
+let calMonth = new Date().getMonth(), calYear = new Date().getFullYear();
+let selectedPlanningEvt = null;
+const COLORS = ['#C0392B','#1A5A9A','#1A7A4A','#D4600A','#5A3A9A','#7A3A6A','#2A6A7A','#6A4A1A'];
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e.error || r.statusText); }
+  return r.json();
+}
+
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+async function login() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const data = await api('POST', '/api/auth/login', { email, password });
+    token = data.session.access_token;
+    localStorage.setItem('sds_token', token);
+    await initApp();
+  } catch(e) {
+    const err = document.getElementById('loginErr');
+    err.textContent = 'Email ou mot de passe incorrect'; err.style.display='block';
+  }
+  btn.disabled = false; btn.textContent = 'Se connecter';
+}
+
+async function logout() {
+  localStorage.removeItem('sds_token');
+  token = null; currentUser = null; currentMembre = null;
+  document.getElementById('appWrap').style.display = 'none';
+  document.getElementById('loginWrap').style.display = 'flex';
+}
+
+async function initApp() {
+  try {
+    currentMembre = await api('GET', '/api/membres/me');
+  } catch(e) { await logout(); return; }
+
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'flex';
+
+  const isAdmin = currentMembre.role === 'admin';
+  document.getElementById('sidebarName').textContent = currentMembre.prenom + ' ' + currentMembre.nom;
+  document.getElementById('sidebarRole').textContent = isAdmin ? 'Administrateur' : 'Bénévole';
+  document.getElementById('sidebarAvatar').textContent = (currentMembre.prenom[0] + currentMembre.nom[0]).toUpperCase();
+  document.getElementById('adminNav').style.display = isAdmin ? '' : 'none';
+  document.getElementById('navMembres').style.display = isAdmin ? '' : 'none';
+  document.getElementById('btnNewEvt').style.display = isAdmin ? '' : 'none';
+
+  await loadAll();
+  showPage('dashboard');
+}
+
+async function loadAll() {
+  try {
+    const [evts, membres, dispos, affectations, ordres] = await Promise.all([
+      api('GET', '/api/evenements'),
+      api('GET', '/api/membres'),
+      api('GET', '/api/disponibilites'),
+      api('GET', '/api/affectations'),
+      api('GET', '/api/ordres')
+    ]);
+    state.evenements = evts;
+    state.membres = membres;
+    state.dispos = dispos;
+    state.affectations = affectations;
+    state.ordres = ordres;
+  } catch(e) { toast('Erreur de chargement', 'error'); }
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const titles = {dashboard:'Tableau de bord',evenements:'Événements',calendrier:'Calendrier',planning:'Planning & affectations',ordres:'Ordres de mission',membres:'Membres',disponibilites:'Mes disponibilités'};
+  document.getElementById('pageTitle').textContent = titles[name]||name;
+  document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick')?.includes("'"+name+"'")) n.classList.add('active'); });
+  if(name==='dashboard') renderDashboard();
+  if(name==='evenements') renderEvenements();
+  if(name==='calendrier') renderCalendrier();
+  if(name==='planning') renderPlanningPage();
+  if(name==='ordres') renderOrdres();
+  if(name==='membres') renderMembres();
+  if(name==='disponibilites') renderDispos();
+}
+
+function mois(n){return["Janv","Févr","Mars","Avr","Mai","Juin","Juil","Août","Sept","Oct","Nov","Déc"][n];}
+function moisLong(n){return["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"][n];}
+function fmtDate(d){const dt=new Date(d+'T00:00:00');return dt.getDate()+' '+mois(dt.getMonth())+' '+dt.getFullYear();}
+function initials(m){return(m.prenom[0]+m.nom[0]).toUpperCase();}
+function typeClass(t){return'tag-'+t;}
+function typeLabel(t){return{taurin:'Taurin',musical:'Musical',sportif:'Sportif',autre:'Autre'}[t]||t;}
+function memberColor(id){const m=state.membres.find(x=>x.id===id);return m?.color||'#888';}
+
+function getPourvus(evtId){return state.affectations.filter(a=>a.evenement_id===evtId).length;}
+function getTotal(evt){return(evt.postes||[]).length;}
+
+function eventCardHtml(evt, showPlan=true) {
+  const d = new Date(evt.date+'T00:00:00');
+  const pourvus = getPourvus(evt.id), total = getTotal(evt);
+  const pct = total ? Math.round(pourvus/total*100) : 0;
+  const fillCls = pct===100?'':pct>=50?'partial':'low';
+  const statusTag = pct===100?'<span class="tag tag-ok">Complet</span>':pourvus>0?`<span class="tag tag-partiel">${pourvus}/${total} postes</span>`:'<span class="tag tag-manque">Recrutement ouvert</span>';
+  return `<div class="event-card">
+    <div class="event-date-col"><div class="event-day">${d.getDate()}</div><div class="event-month">${mois(d.getMonth())}</div></div>
+    <div class="event-body">
+      <div class="event-name">${evt.nom}</div>
+      <div class="event-meta"><span>${evt.heure_debut}–${evt.heure_fin}</span><span>${evt.lieu||''}</span><span>${(evt.vehicules||[]).join(', ')}</span></div>
+      <div class="event-tags"><span class="tag ${typeClass(evt.type)}">${typeLabel(evt.type)}</span>${statusTag}</div>
+    </div>
+    <div class="event-actions">
+      <div class="progress-label">${pourvus}/${total}</div>
+      <div class="progress-bar"><div class="progress-fill ${fillCls}" style="width:${pct}%"></div></div>
+      ${showPlan&&currentMembre?.role==='admin'?`<button class="btn btn-secondary btn-sm" onclick="showPage('planning');selectPlanning('${evt.id}')">Planifier</button>`:''}
+    </div>
+  </div>`;
+}
+
+function renderDashboard() {
+  const evts = state.evenements.filter(e=>e.date>=new Date().toISOString().slice(0,10));
+  const totalPourvus = state.affectations.length;
+  const totalPostes = state.evenements.reduce((s,e)=>s+(e.postes||[]).length,0);
+  const omSignes = state.ordres.filter(o=>o.signe).length;
+  const nonPourvus = state.evenements.filter(e=>getPourvus(e.id)<getTotal(e));
+
+  document.getElementById('sEvts').textContent = evts.length;
+  document.getElementById('sMembres').textContent = state.membres.length;
+  document.getElementById('sPourvus').textContent = totalPourvus;
+  document.getElementById('sTotal').textContent = '/'+totalPostes;
+  document.getElementById('sOM').textContent = omSignes;
+
+  const badge = document.getElementById('alertBadge');
+  const alertDash = document.getElementById('alertDash');
+  if(nonPourvus.length>0 && currentMembre?.role==='admin'){
+    badge.style.display='block';
+    badge.textContent=`⚠ ${nonPourvus.length} événement${nonPourvus.length>1?'s':''} incomplet${nonPourvus.length>1?'s':''}`;
+    alertDash.style.display='flex';
+    alertDash.innerHTML=`<span>${nonPourvus.length} événement${nonPourvus.length>1?'s':''} avec des postes non pourvus</span>`;
+  } else { badge.style.display='none'; alertDash.style.display='none'; }
+
+  document.getElementById('dashEvents').innerHTML = evts.slice(0,3).map(e=>eventCardHtml(e,false)).join('') || '<div class="loading">Aucun événement à venir</div>';
+}
+
+function renderEvenements() {
+  document.getElementById('evtsList').innerHTML = `
+    <div class="section-header" style="margin-bottom:14px;">
+      <div></div>
+      ${currentMembre?.role==='admin'?'<button class="btn btn-primary" onclick="openModal(\'modalEvenement\')"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1v12M1 7h12"/></svg>Nouvel événement</button>':''}
+    </div>
+    <div class="events-grid">${state.evenements.map(e=>eventCardHtml(e)).join('')||'<div class="loading">Aucun événement</div>'}</div>`;
+}
+
+function renderCalendrier() {
+  const title = moisLong(calMonth)+' '+calYear;
+  document.getElementById('calTitle').textContent = title;
+  const jours=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  let html = jours.map(j=>`<div class="cal-header-cell">${j}</div>`).join('');
+  const first = new Date(calYear,calMonth,1);
+  let start = first.getDay()-1; if(start<0)start=6;
+  const dim = new Date(calYear,calMonth+1,0).getDate();
+  const today = new Date();
+  for(let i=0;i<start;i++) html+=`<div class="cal-cell other-month"></div>`;
+  for(let d=1;d<=dim;d++){
+    const dk=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getDate()===d&&today.getMonth()===calMonth&&today.getFullYear()===calYear;
+    const evts=state.evenements.filter(e=>e.date===dk);
+    const colors={taurin:'#FEF0E6;color:#D4600A',musical:'#E6EFF9;color:#1A5A9A',sportif:'#E8F5EE;color:#1A7A4A',autre:'#EEEAF9;color:#5A3A9A'};
+    const dots=evts.map(e=>`<div class="cal-event-dot" style="background:${colors[e.type]}">${e.nom.slice(0,16)}</div>`).join('');
+    html+=`<div class="cal-cell${isToday?' today':''}"><div class="cal-day${isToday?' today-num':''}">${d}</div>${dots}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=html;
+}
+function changeMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendrier();}
+
+function renderPlanningPage(){
+  const el=document.getElementById('planningBtns');
+  el.innerHTML=state.evenements.map(e=>`<button class="btn ${selectedPlanningEvt===e.id?'btn-primary':'btn-secondary'}" onclick="selectPlanning('${e.id}')">${e.nom}</button>`).join('');
+  if(selectedPlanningEvt) renderPlanning(selectedPlanningEvt);
+  else if(state.evenements.length>0) selectPlanning(state.evenements[0].id);
+  else document.getElementById('planningContent').innerHTML='<div class="loading">Aucun événement</div>';
+}
+
+function selectPlanning(id){
+  selectedPlanningEvt=id;
+  document.querySelectorAll('#planningBtns .btn').forEach(b=>{b.className='btn btn-secondary';});
+  event?.target?.classList?.replace('btn-secondary','btn-primary');
+  renderPlanningPage();
+}
+
+function renderPlanning(evtId){
+  const evt=state.evenements.find(e=>e.id===evtId);
+  if(!evt)return;
+  const aff=state.affectations.filter(a=>a.evenement_id===evtId);
+  const dispos=state.dispos.filter(d=>d.evenement_id===evtId&&(d.statut==='oui'||d.statut==='peuxetre'));
+
+  const posteGroups={};
+  (evt.postes||[]).forEach(p=>{posteGroups[p]=(posteGroups[p]||0)+1;});
+  const affByPoste={};
+  aff.forEach(a=>{if(!affByPoste[a.poste])affByPoste[a.poste]=[];affByPoste[a.poste].push(a);});
+
+  const rolesHtml=Object.entries(posteGroups).map(([poste,count])=>{
+    const filled=affByPoste[poste]||[];
+    let slots='';
+    for(let i=0;i<count;i++){
+      if(filled[i]){
+        const m=filled[i].membres;
+        const color=filled[i].membres?.color||'#888';
+        slots+=`<div class="assigned-slot">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:20px;height:20px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff">${m?initials(m):'?'}</div>
+            <span style="font-weight:500">${m?m.prenom+' '+m.nom:'—'}</span>
+          </div>
+          <span style="font-size:11px;color:var(--gris-dark);cursor:pointer" onclick="retirerAff('${filled[i].id}')">×</span>
+        </div>`;
+      } else {
+        slots+=`<div class="empty-slot">— Poste libre</div>`;
+      }
+    }
+    return `<div class="role-card"><div class="role-name">${poste}</div>${slots}</div>`;
+  }).join('');
+
+  const dispoRows=dispos.length>0?dispos.map(d=>{
+    const m=d.membres;
+    if(!m)return'';
+    const qualHtml=(m.qualifications||[]).map(q=>{let cls='';if(q==='PSE2')cls='pse2';else if(q==='Chef de poste')cls='chef';else if(q==='Conducteur')cls='conducteur';return`<span class="qual-badge ${cls}">${q}</span>`;}).join('');
+    const dejà=aff.some(a=>a.membre_id===d.membre_id);
+    return`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:28px;height:28px;border-radius:50%;background:${m.color||'#888'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff">${initials(m)}</div>
+        <span style="font-weight:500">${m.prenom} ${m.nom}</span>
+      </div></td>
+      <td>${qualHtml}</td>
+      <td><span style="font-size:12px;padding:3px 8px;border-radius:20px;background:${d.statut==='oui'?'var(--vert-pale)':'var(--orange-pale)'};color:${d.statut==='oui'?'var(--vert)':'var(--orange)'}">${d.statut==='oui'?'Disponible':'Peut-être'}</span></td>
+      <td>${dejà?'<span style="font-size:12px;color:var(--gris-dark)">Affecté</span>':`<button class="btn btn-secondary btn-sm" onclick="affecterMembre('${evtId}','${d.membre_id}')">Affecter</button>`}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--gris-dark);padding:20px;">Aucun bénévole disponible</td></tr>`;
+
+  document.getElementById('planningContent').innerHTML=`
+    <div class="planning-header">
+      <div class="planning-event-title">${evt.nom} — ${fmtDate(evt.date)} · ${evt.heure_debut}–${evt.heure_fin}</div>
+      <div class="roles-grid">${rolesHtml}</div>
+    </div>
+    <div class="section-header" style="margin:20px 0 14px;"><div class="section-title">Bénévoles disponibles</div></div>
+    <div class="dispo-table"><table><thead><tr><th>Bénévole</th><th>Qualifications</th><th>Statut</th><th>Action</th></tr></thead><tbody>${dispoRows}</tbody></table></div>`;
+}
+
+async function affecterMembre(evtId, membreId){
+  const evt=state.evenements.find(e=>e.id===evtId);
+  const aff=state.affectations.filter(a=>a.evenement_id===evtId);
+  const posteGroups={};
+  (evt.postes||[]).forEach(p=>{posteGroups[p]=(posteGroups[p]||0)+1;});
+  const affByPoste={};
+  aff.forEach(a=>{if(!affByPoste[a.poste])affByPoste[a.poste]=[];affByPoste[a.poste].push(a);});
+  const libre=Object.entries(posteGroups).find(([p,count])=>(affByPoste[p]||[]).length<count);
+  if(!libre){toast('Tous les postes sont pourvus !','error');return;}
+  try{
+    const data=await api('POST','/api/affectations',{evenement_id:evtId,membre_id:membreId,poste:libre[0]});
+    state.affectations.push(data);
+    toast(`${data.poste} affecté !`);
+    renderPlanning(evtId);
+    renderPlanningPage();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function retirerAff(id){
+  try{
+    await api('DELETE','/api/affectations/'+id);
+    state.affectations=state.affectations.filter(a=>a.id!==id);
+    toast('Affectation retirée');
+    renderPlanning(selectedPlanningEvt);
+    renderPlanningPage();
+  }catch(e){toast(e.message,'error');}
+}
+
+function renderOrdres(){
+  const el=document.getElementById('omList');
+  if(!state.ordres.length){el.innerHTML='<div class="loading">Aucun ordre de mission</div>';return;}
+  el.innerHTML=state.ordres.map(om=>{
+    const evt=om.evenements;
+    if(!evt)return'';
+    const aff=state.affectations.filter(a=>a.evenement_id===om.evenement_id);
+    const personnelHtml=aff.map(a=>{
+      const m=a.membres;
+      if(!m)return'';
+      return`<div class="personnel-item"><div class="personnel-avatar" style="background:${m.color||'#888'}">${initials(m)}</div><span style="font-weight:500;flex:1">${m.prenom} ${m.nom}</span><span class="tag tag-ok">${a.poste}</span></div>`;
+    }).join('');
+    const vehicHtml=(evt.vehicules||[]).map(v=>`<div class="vpsp-badge">${v}</div>`).join('');
+    const statusBadge=om.signe?'<span class="tag tag-ok">Signé · PDF disponible</span>':'<span class="tag tag-partiel">En attente de signatures</span>';
+    return`<div class="om-card">
+      <div class="om-header"><div><div class="om-title">${om.numero} · ${evt.nom}</div><div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px;">Secouristes du Sud · Agrément sécurité civile</div></div>${statusBadge}</div>
+      <div class="om-body">
+        <div class="om-grid">
+          <div class="om-field"><label>Événement</label><p>${evt.nom}</p></div>
+          <div class="om-field"><label>Type</label><p>${typeLabel(evt.type)}</p></div>
+          <div class="om-field"><label>Date</label><p>${fmtDate(evt.date)}</p></div>
+          <div class="om-field"><label>Horaires</label><p>${evt.heure_debut} – ${evt.heure_fin}</p></div>
+          <div class="om-field"><label>Lieu</label><p>${evt.lieu||'—'}</p></div>
+          <div class="om-field"><label>Contact</label><p>${evt.contact_organisateur||'—'}</p></div>
+        </div>
+        ${evt.instructions_acces?`<div class="om-section-title">Instructions d'accès</div><p style="font-size:13px">${evt.instructions_acces}</p>`:''}
+        ${evt.protocoles?`<div class="om-section-title">Consignes médicales</div><p style="font-size:13px">${evt.protocoles}</p>`:''}
+        <div class="om-section-title">Véhicules</div><div class="vehicules-row">${vehicHtml}</div>
+        <div class="om-section-title">Personnel affecté</div><div class="personnel-list">${personnelHtml||'<div style="font-size:13px;color:var(--gris-dark)">Aucun bénévole affecté</div>'}</div>
+        <div class="signature-row">
+          <div class="sig-block">
+            <div class="sig-role">Responsable association</div>
+            ${om.sig_responsable?'<div class="sig-signed">✓ Signé</div>':'<div class="sig-pending">Signature en attente</div>'}
+            ${!om.sig_responsable&&currentMembre?.role==='admin'?`<button class="btn btn-primary btn-sm" style="width:100%;margin-top:4px;justify-content:center" onclick="signerOM('${om.id}','responsable')">Signer</button>`:''}
+          </div>
+          <div class="sig-block">
+            <div class="sig-role">Chef de poste</div>
+            ${om.sig_chef?'<div class="sig-signed">✓ Validé</div>':'<div class="sig-pending">Validation en attente</div>'}
+            ${!om.sig_chef?`<button class="btn btn-secondary btn-sm" style="width:100%;margin-top:4px;justify-content:center" onclick="signerOM('${om.id}','chef')">Valider</button>`:''}
+          </div>
+        </div>
+        ${om.signe?`<div style="text-align:center;margin-top:14px"><a href="/api/ordres/${om.id}/pdf" target="_blank" class="btn btn-primary"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1v8M4 7l3 3 3-3M2 11v2h10v-2"/></svg>Télécharger le PDF</a></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function signerOM(id, qui){
+  try{
+    const data=await api('PUT',`/api/ordres/${id}/signer`,{qui});
+    const idx=state.ordres.findIndex(o=>o.id===id);
+    if(idx>-1) state.ordres[idx]={...state.ordres[idx],...data};
+    toast(qui==='responsable'?'Ordre de mission signé !':'Validation enregistrée !');
+    renderOrdres();
+  }catch(e){toast(e.message,'error');}
+}
+
+function renderMembres(){
+  document.getElementById('membresList').innerHTML=state.membres.map(m=>{
+    const qualHtml=(m.qualifications||[]).map(q=>{let cls='';if(q==='PSE2')cls='pse2';else if(q==='Chef de poste')cls='chef';else if(q==='Conducteur')cls='conducteur';return`<span class="qual-badge ${cls}">${q}</span>`;}).join('');
+    return`<div class="membre-card">
+      <div class="membre-avatar" style="background:${m.color||'#888'}">${initials(m)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="membre-name">${m.prenom} ${m.nom}</div>
+        <div class="membre-email">${m.email}${m.tel?' · '+m.tel:''}</div>
+        <div class="membre-quals">${qualHtml}</div>
+        <div style="font-size:11px;color:var(--gris-dark);margin-top:8px">${m.missions_count} mission${m.missions_count!==1?'s':''} effectuée${m.missions_count!==1?'s':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDispos(){
+  const el=document.getElementById('dispoList');
+  const today=new Date().toISOString().slice(0,10);
+  const evts=state.evenements.filter(e=>e.date>=today);
+  if(!evts.length){el.innerHTML='<div class="loading">Aucun événement à venir</div>';return;}
+  el.innerHTML=evts.map(evt=>{
+    const myDispo=state.dispos.find(d=>d.evenement_id===evt.id&&d.membre_id===currentMembre?.id);
+    const statut=myDispo?.statut||null;
+    return`<div class="dispo-event-card">
+      <div class="dispo-event-header">
+        <div>
+          <div class="event-name">${evt.nom}</div>
+          <div class="event-meta" style="margin-top:4px"><span>${fmtDate(evt.date)} · ${evt.heure_debut}–${evt.heure_fin}</span><span>${evt.lieu||''}</span></div>
+          <div style="margin-top:8px"><span class="tag ${typeClass(evt.type)}">${typeLabel(evt.type)}</span></div>
+        </div>
+        <div class="dispo-toggle">
+          <button class="dispo-btn oui${statut==='oui'?' active':''}" onclick="setDispo('${evt.id}','oui',this)">Dispo</button>
+          <button class="dispo-btn peuxetre${statut==='peuxetre'?' active':''}" onclick="setDispo('${evt.id}','peuxetre',this)">Peut-être</button>
+          <button class="dispo-btn non${statut==='non'?' active':''}" onclick="setDispo('${evt.id}','non',this)">Indispo</button>
+        </div>
+      </div>
+      ${statut==='oui'?'<div style="font-size:12px;color:var(--vert);background:var(--vert-pale);padding:6px 10px;border-radius:var(--radius)">Disponibilité enregistrée. Vous serez notifié si affecté.</div>':''}
+    </div>`;
+  }).join('');
+}
+
+async function setDispo(evtId, statut){
+  if(!currentMembre)return;
+  try{
+    const data=await api('POST','/api/disponibilites',{evenement_id:evtId,membre_id:currentMembre.id,statut});
+    const idx=state.dispos.findIndex(d=>d.evenement_id===evtId&&d.membre_id===currentMembre.id);
+    if(idx>-1) state.dispos[idx]=data; else state.dispos.push(data);
+    toast('Disponibilité enregistrée !');
+    renderDispos();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function creerEvenement(){
+  const nom=document.getElementById('eNom').value.trim();
+  const date=document.getElementById('eDate').value;
+  if(!nom||!date){toast('Nom et date obligatoires','error');return;}
+  const vehicules=Array.from(document.querySelectorAll('#modalEvenement input[type=checkbox][value^="V"]:checked')).map(c=>c.value);
+  const postes=Array.from(document.querySelectorAll('#modalEvenement input[type=checkbox]:not([value^="V"]):checked')).map(c=>c.value);
+  try{
+    const data=await api('POST','/api/evenements',{
+      nom,type:document.getElementById('eType').value,date,
+      heure_debut:document.getElementById('eDebut').value,
+      heure_fin:document.getElementById('eFin').value,
+      lieu:document.getElementById('eLieu').value,
+      contact_organisateur:document.getElementById('eContact').value,
+      instructions_acces:document.getElementById('eAcces').value,
+      protocoles:document.getElementById('eProtocoles').value,
+      vehicules,postes
+    });
+    state.evenements.push(data);
+    state.evenements.sort((a,b)=>a.date.localeCompare(b.date));
+    closeModal('modalEvenement');
+    toast('Événement créé !');
+    renderEvenements();
+    renderDashboard();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function creerMembre(){
+  const prenom=document.getElementById('mPrenom').value.trim();
+  const nom=document.getElementById('mNom').value.trim();
+  const email=document.getElementById('mEmail').value.trim();
+  if(!prenom||!nom||!email){toast('Prénom, nom et email obligatoires','error');return;}
+  const quals=Array.from(document.querySelectorAll('.mQual:checked')).map(c=>c.value);
+  try{
+    const data=await api('POST','/api/membres',{prenom,nom,email,tel:document.getElementById('mTel').value,qualifications:quals,role:document.getElementById('mRole').value,color:COLORS[state.membres.length%COLORS.length]});
+    state.membres.push(data);
+    closeModal('modalMembre');
+    toast('Membre créé !');
+    renderMembres();
+  }catch(e){toast(e.message,'error');}
+}
+
+async function creerOM(){
+  const evtId=document.getElementById('omEvtSelect').value;
+  if(!evtId){toast('Sélectionnez un événement','error');return;}
+  try{
+    const data=await api('POST','/api/ordres',{evenement_id:evtId});
+    const evt=state.evenements.find(e=>e.id===evtId);
+    state.ordres.unshift({...data,evenements:evt});
+    closeModal('modalOM');
+    toast('Ordre de mission créé !');
+    renderOrdres();
+  }catch(e){toast(e.message,'error');}
+}
+
+function openModal(id){
+  document.getElementById(id).classList.remove('hidden');
+  if(id==='modalOM'){
+    const sel=document.getElementById('omEvtSelect');
+    sel.innerHTML=state.evenements.map(e=>`<option value="${e.id}">${e.nom} — ${fmtDate(e.date)}</option>`).join('');
+  }
+}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.add('hidden');});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!document.getElementById('loginWrap').style.display==='none')login();});
+
+if(token) initApp().catch(()=>{localStorage.removeItem('sds_token');});
+</script>
+</body>
+</html>
