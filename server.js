@@ -11,6 +11,10 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 app.use(cors());
 app.use(express.json());
@@ -66,7 +70,7 @@ app.get('/api/membres/me', auth, async (req, res) => {
 app.post('/api/membres', auth, adminOnly, async (req, res) => {
   const { prenom, nom, email, tel, qualifications, role, color } = req.body;
   // Créer compte auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email, password: Math.random().toString(36).slice(-10),
     email_confirm: true
   });
