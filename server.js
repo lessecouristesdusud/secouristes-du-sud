@@ -71,8 +71,15 @@ app.post('/api/membres', auth, adminOnly, async (req, res) => {
   const { prenom, nom, email, tel, qualifications, role, color } = req.body;
   // Créer compte auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email, password: Math.random().toString(36).slice(-10),
-    email_confirm: true
+    email,
+    password: Math.random().toString(36).slice(-10),
+    email_confirm: true,
+    user_metadata: { prenom, nom }
+  });
+
+await supabaseAdmin.auth.admin.generateLink({
+    type: 'recovery',
+    email: email
   });
   if (authError) return res.status(500).json({ error: authError.message });
   const { data, error } = await req.sb.from('membres').insert({
