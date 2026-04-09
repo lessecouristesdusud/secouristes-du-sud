@@ -14,7 +14,7 @@ const supabase = createClient(
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));
 
 // ── AUTH ──
 app.post('/api/auth/login', async (req, res) => {
